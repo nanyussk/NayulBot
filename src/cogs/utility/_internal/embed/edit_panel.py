@@ -56,7 +56,7 @@ class EditEmbed(discord.ui.View):
     @discord.ui.button(emoji=Emoji.back, style=discord.ButtonStyle.gray, row=2)
     async def _back(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
         from .main_panel import MainView
-        await inter.response.edit_message(embeds=self.embeds, view=MainView(self.embeds))
+        await inter.response.edit_message(embeds=self.embeds, view=MainView(embeds=self.embeds, items=self.items))
     
     @discord.ui.button(label='Enviar JSON', emoji=Emoji.exportar, style=discord.ButtonStyle.blurple, row=2)
     async def _send_json(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
