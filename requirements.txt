@@ -8,3 +8,4 @@ psutil
 unidecode
 motor
 tzdata
+emoji
