@@ -25,7 +25,7 @@ class EditEmbed(discord.ui.View):
     @discord.ui.button(label='Cor', emoji=Emoji.paleta, style=discord.ButtonStyle.gray, row=0)
     async def _color(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
         from .components.views import ColorView
-        await inter.response.edit_message(view=ColorView(embeds=self.embeds, embed=self.embed))
+        await inter.response.edit_message(view=ColorView(embeds=self.embeds, embed=self.embed, items=self.items))
     
     @discord.ui.button(label='Author', emoji=Emoji.icon_user, style=discord.ButtonStyle.gray, row=0)
     async def _author(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
@@ -35,7 +35,7 @@ class EditEmbed(discord.ui.View):
     @discord.ui.button(label='Editar campos', emoji=Emoji.list, style=discord.ButtonStyle.gray, row=0)
     async def _fields(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
         from .components.views import FieldsView
-        await inter.response.edit_message(embeds=self.embeds, view=FieldsView(embeds=self.embeds, embed=self.embed))
+        await inter.response.edit_message(embeds=self.embeds, view=FieldsView(embeds=self.embeds, embed=self.embed, items=self.items))
 
     @discord.ui.button(label='Imagem/Thumbnail', emoji=Emoji.splash, style=discord.ButtonStyle.gray, row=1)
     async def _image(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
@@ -51,7 +51,7 @@ class EditEmbed(discord.ui.View):
     async def _remove_embed(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
         from .main_panel import MainView
         self.embeds.remove(self.embed)
-        await inter.response.edit_message(embeds=self.embeds, view=MainView(self.embeds))
+        await inter.response.edit_message(embeds=self.embeds, view=MainView(embeds=self.embeds, items=self.items))
     
     @discord.ui.button(emoji=Emoji.back, style=discord.ButtonStyle.gray, row=2)
     async def _back(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):

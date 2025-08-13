@@ -10,6 +10,15 @@ class Colors:
     ICY_WHITE       = 15921906
     NIGHT_PURPLE    = 1708071
 
+    @classmethod
+    def valid_colors(cls) -> list[int]:
+        return [
+            cls.MYSTIC_PURPLE,
+            cls.VIBRANT_PURPLE,
+            cls.VIOLET_BLACK,
+            cls.NIGHT_PURPLE
+        ]
+
 
 def format_api_url(endpoint: str) -> str:
 	"""Formata a URL da API.

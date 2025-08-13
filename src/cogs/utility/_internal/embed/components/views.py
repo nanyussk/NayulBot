@@ -13,8 +13,8 @@ class FieldsView(discord.ui.View):
         self.embed=embed
         self.items=items
 
-        self.add_item(EditFieldSelect(embeds=self.embeds, embed=self.embed))
-        self.add_item(DeleteFieldSelect(embeds=self.embeds, embed=self.embed))
+        self.add_item(EditFieldSelect(embeds=self.embeds, embed=self.embed, items=self.items))
+        self.add_item(DeleteFieldSelect(embeds=self.embeds, embed=self.embed, items=self.items))
 
     @discord.ui.button(emoji=Emoji.back, style=discord.ButtonStyle.gray, row=3)
     async def close(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
@@ -24,7 +24,7 @@ class FieldsView(discord.ui.View):
     @discord.ui.button(label='Adicionar Campo', emoji=Emoji.add, style=discord.ButtonStyle.blurple, row=3)
     async def delete(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
         from .modals import ModalFields
-        await inter.response.send_modal(ModalFields(embeds=self.embeds, embed=self.embed))
+        await inter.response.send_modal(ModalFields(embeds=self.embeds, embed=self.embed, items=self.items))
 
 class ColorView(discord.ui.View):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed, items: list[discord.ui.Item]):
