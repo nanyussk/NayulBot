@@ -10,7 +10,6 @@ from src.utils.emojis import Emoji
 
 from ._internal import embed
 
-
 class EmbedUtility(commands.Cog):
     def __init__(self, nayul: NayulCore) -> None:
         self.nayul: NayulCore = nayul
@@ -34,23 +33,14 @@ class EmbedUtility(commands.Cog):
     @embed.command(name='criar', description='Abra um painel de criação de embeds')
     @app_commands.checks.has_permissions(manage_messages=True, embed_links=True)
     @app_commands.checks.bot_has_permissions(send_messages=True, embed_links=True)
-    @app_commands.choices(
-        embed_type=[
-            app_commands.Choice(name='Embed', value=1),
-            app_commands.Choice(name='Components V2', value=2),
-        ]
-    )
-    async def _embed_create(self, inter: discord.Interaction, embed_type: app_commands.Choice[int]):
-        if embed_type.value == 1:
-            embeds: list[discord.Embed] = []
-            items: list[discord.ui.Item] = []
+    async def _embed_create(self, inter: discord.Interaction):
+        embeds: list[discord.Embed] = []
+        items: list[discord.ui.Item] = []
 
-            embeds.append(discord.Embed(title='Título 1', description='Descrição', color=Colors.NIGHT_PURPLE))
-            await inter.response.send_message(
-                embeds=embeds, view=embed.MainView(embeds=embeds, items=items), ephemeral=True
-            )
-        else:
-            await inter.response.send_message('Em breve...', ephemeral=True)
+        embeds.append(discord.Embed(title='Título 1', description='Descrição', color=Colors.NIGHT_PURPLE))
+        await inter.response.send_message(
+            embeds=embeds, view=embed.MainView(embeds=embeds, items=items), ephemeral=True
+        )
 
     async def _get_json(self, inter: discord.Interaction, message: discord.Message):
         if not message.embeds:
