@@ -47,7 +47,7 @@ class ColorView(discord.ui.View):
     @discord.ui.button(emoji=Emoji.back, style=discord.ButtonStyle.gray, row=2)
     async def close(self, inter: discord.Interaction[NayulCore], button: discord.ui.Button):
         from ..edit_panel import EditEmbed
-        await inter.response.edit_message(embeds=self.embeds, view=EditEmbed(embeds=self.embeds, embed=self.embed, items=self.items))
+        await inter.response.edit_message(embed=self.embed, view=EditEmbed(embeds=self.embeds, embed=self.embed, items=self.items))
 
 class EditButtonView(discord.ui.View):
     def __init__(self, *, embeds: list[discord.Embed], items: list[discord.ui.Item], item: discord.ui.Item | None):

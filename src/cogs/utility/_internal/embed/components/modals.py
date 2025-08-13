@@ -428,7 +428,7 @@ class ModalButton(discord.ui.Modal):
             required=True
         )
         self._emoji = TextInput(
-            label='Emoji do Botão',
+            label='Emoji do Botão (Opcional)',
             placeholder='Insira o emoji do botão...',
             default=emoji,
             style=discord.TextStyle.short,
