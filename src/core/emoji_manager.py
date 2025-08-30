@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING:
     from src import NayulCore
 
-from env import ENV
+from src.env import ENV
 from src.utils.emojis import Emoji
 
 

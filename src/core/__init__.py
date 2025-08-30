@@ -8,12 +8,12 @@ import aiohttp
 from time import time
 from dotenv import load_dotenv
 
-from env import ENV
+from src.env import ENV
 from .emoji_manager import EmojiManager
 from .word_manager import WordManager
 from .cog_manager import CogManager
 from .restrict_help import RestrictedHelpCommand
-from database import DatabaseClient
+from src.database import DatabaseClient
 
 log = logging.getLogger(__name__)
 load_dotenv()

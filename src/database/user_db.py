@@ -4,7 +4,7 @@ from typing import Optional, Union, Literal, AsyncGenerator, List
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from database.models.user import UserData
+from src.database.models.user import UserData
 
 class UsersDB:
     def __init__(self, client: AsyncIOMotorClient):

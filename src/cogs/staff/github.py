@@ -4,10 +4,10 @@ import base64
 from typing import List
 
 from src import NayulCore
-from env import ENV
+from src.env import ENV
 from src.utils import nayul_decorators
-from wrappers.github.client import Client as GitHubClient
-from wrappers.github.data.file import GitHubFile
+from src.wrappers.github.client import Client as GitHubClient
+from src.wrappers.github.data.file import GitHubFile
 
 REPO_NAME = 'NayulCoreAPI'
 WORDS_PATH = 'files/words/wordle/pt.txt'
