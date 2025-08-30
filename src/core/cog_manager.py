@@ -15,21 +15,19 @@ class CogManager:
 
     async def load_cogs(self, nayul: 'NayulCore'):
         """ Carrega todas as extensões do bot. """
-        for root, _, files in os.walk(self.path): # Caminho para as extensões
-            # Ignora qualquer diretório que contenha '_internal' no caminho
+        for root, _, files in os.walk(self.path):
             if '_internal' in root.split(os.path.sep):
                 continue
-            for file in files: # Percorre os arquivos no diretório
-                if file.endswith('.py'): # Verifica se o arquivo é um arquivo python
+            for file in files:
+                if file.endswith('.py'):
                     rel_path = os.path.relpath(os.path.join(root, file), start=os.path.dirname(os.path.dirname(__file__)))
-                    # Garante que sempre começa com 'nayul.'
                     if rel_path.startswith('cogs' + os.path.sep):
                         rel_path = 'src' + os.path.sep + rel_path
 
                     module = rel_path[:-3].replace(os.path.sep, '.')
-                    self.extensions[file[:-3]] = module # Adiciona a extensão ao dicionário de extensões
+                    self.extensions[file[:-3]] = module
                     try:
-                        await nayul.load_extension(module) # Carrega a extensão
+                        await nayul.load_extension(module)
                         log.info(f'✅ Carregado {file!r} de {root[9:]!r}.')
                     except Exception:
                         log.exception(f'Erro ao carregar a extensão {file}:')

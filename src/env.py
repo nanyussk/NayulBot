@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from typing import List, Optional
 from dataclasses import dataclass
 
-load_dotenv()  # Carrega variáveis do .env
+load_dotenv()
 
 log = logging.getLogger(__name__)
 

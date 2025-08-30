@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional, Literal, List
 import logging
 
-from database.models.skin import ProfileSkin
+from src.database.models.skin import ProfileSkin
 
 log = logging.getLogger(__name__)
 

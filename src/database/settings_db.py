@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Literal
 import logging
 
-from database.models.settings import Settings
+from src.database.models.settings import Settings
 
 log = logging.getLogger(__name__)
 

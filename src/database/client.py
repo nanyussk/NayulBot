@@ -1,10 +1,10 @@
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from env import ENV
-from database.user_db import UsersDB
-from database.skin_db import SkinsDB
-from database.settings_db import SettingsDB
+from src.env import ENV
+from src.database.user_db import UsersDB
+from src.database.skin_db import SkinsDB
+from src.database.settings_db import SettingsDB
 
 log = logging.getLogger(__name__)
 
