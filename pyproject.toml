@@ -1,0 +1,23 @@
+[tool.flake8]
+max-line-length = 88
+ignore = ['E203', 'W503']
+exclude = [
+    '.git',
+    '__pycache__',
+    'build',
+    'dist',
+    '.venv'
+]
+
+[tool.pyright]
+typeCheckingMode = 'off'
+reportMissingImports = true
+reportUnusedImport = true
+reportUnusedVariable = true
+pythonVersion = '3.13'
+venvPath = '.'
+venv = '.venv'
+
+[tool.bandit]
+skips = ['B101']
+exclude = ['tests']

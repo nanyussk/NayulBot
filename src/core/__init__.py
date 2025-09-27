@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 from src.env import ENV
 from .emoji_manager import EmojiManager
-from .word_manager import WordManager
 from .cog_manager import CogManager
 from .restrict_help import RestrictedHelpCommand
 from src.database import DatabaseClient
@@ -48,7 +47,6 @@ class NayulCore(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession()
         self.cog_manager = CogManager()
         self.emoji_manager = EmojiManager()
-        self.word_manager = WordManager()
 
         #Adicionando os IDs dos proprietários definidos no .env.
         for owner_id in ENV.OWNER_IDS:
@@ -64,7 +62,6 @@ class NayulCore(commands.AutoShardedBot):
             except Exception:
                 await self.close()
 
-            await self.word_manager.load_words(self)
             await self.emoji_manager.config_emojis(self)
             await self.cog_manager.load_cogs(self)
             await self.load_extension('jishaku')

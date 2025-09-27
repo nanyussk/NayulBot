@@ -52,7 +52,7 @@ source venv/bin/activate  # No Windows: venv\Scripts\activate
 
 5. **Execute o bot:**
    ```bash
-   python launcher.py
+   python main.py
    ```
 
 ---
