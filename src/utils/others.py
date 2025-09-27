@@ -1,7 +1,10 @@
+import os
 import yaml
-from src.env import ENV
 from datetime import datetime
 from typing import Union, Literal
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 class Colors:
     MYSTIC_PURPLE   = 4927093
@@ -18,17 +21,6 @@ class Colors:
             cls.VIOLET_BLACK,
             cls.NIGHT_PURPLE
         ]
-
-
-def format_api_url(endpoint: str) -> str:
-	"""Formata a URL da API.
-	Args:
-		endpoint (`str`): Endpoint da API.
-	Returns:
-		str: URL formatada.
-	"""
-	url = ENV.INTERNAL_API + endpoint
-	return url
 
 def format_timestamp(date: Union[datetime, int, str], style: Literal['t','T','f','F','d','D','R']) -> str:
 	"""Formata o timestamp.
@@ -68,5 +60,9 @@ def format_timestamp(date: Union[datetime, int, str], style: Literal['t','T','f'
 
 def Permissions() -> dict:
 	"""Carrega as permissões em Português do arquivo permissions.yml."""
-	with open('./src/utils/resources/permissions.yml', 'r', encoding='utf-8') as file:
+	with open(BASE_DIR + '/resources/permissions.yml', 'r', encoding='utf-8') as file:
 		return yaml.safe_load(file) or {}
+
+def read_txt_file(path: str) -> str | None:
+    with open(f'{BASE_DIR}/{path}', 'r', encoding='utf-8') as file:
+        return file.read() or None

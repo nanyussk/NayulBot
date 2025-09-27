@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from dotenv import load_dotenv
-from typing import List, Optional
+from typing import List
 from dataclasses import dataclass
 
 load_dotenv()
@@ -29,21 +29,17 @@ class Env:
     TOKEN: str
     OWNER_IDS: List[int]
     MONGO: str
-    INTERNAL_API: str
+    FILES_API: str
 
     # Opcionais (com valores padrão)
     PREFIX: str = ',,'
-    GITHUB_TOKEN: Optional[str] = None
-    GITHUB_USERNAME: Optional[str] = None
 
     @classmethod
     def load(cls) -> 'Env':
         return cls(
             TOKEN=_validate_required('TOKEN'),
-            GITHUB_TOKEN=os.getenv('GITHUB_TOKEN', None),
-            GITHUB_USERNAME=os.getenv('GITHUB_USERNAME', None),
             OWNER_IDS=_str_to_list_of_ints(_validate_required('OWNER_IDS')),
-            INTERNAL_API=_validate_required('INTERNAL_API'),
+            FILES_API=_validate_required('FILES_API'),
             PREFIX=os.getenv('PREFIX', ',,'),
             MONGO=_validate_required('MONGO')
         )

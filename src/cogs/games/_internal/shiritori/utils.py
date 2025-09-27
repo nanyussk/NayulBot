@@ -4,8 +4,8 @@ from datetime import datetime
 
 import re
 from src.utils.emojis import Emoji
+from src.utils.others import read_txt_file
 from .types import PlayerStats
-from src import NayulCore
 
 if TYPE_CHECKING:
     from .views import ConfirmPlayer
@@ -21,11 +21,13 @@ def configure_player_button(button: 'ConfirmPlayer'):
     button.label = None
     button.emoji = Emoji.check
 
-def validate_word_shiritori(word: str, inter: discord.Interaction[NayulCore]) -> bool:
+def validate_word_shiritori(word: str) -> bool:
     if len(word) < 3 or not re.search(r'[aeiou].$|.[aeiou]$', word):
         return False
+
+    words_list = read_txt_file('resources/words/all/pt-BR.txt').split('\n')
     
-    return word in inter.client.word_manager.words_list
+    return word in words_list
 
 def get_time_limit(used_words_count: int) -> int:
     """

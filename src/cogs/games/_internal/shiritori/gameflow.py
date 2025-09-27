@@ -115,7 +115,7 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
                         break
 
                     # Valida se a palavra é aceita pelo jogo
-                    valid = validate_word_shiritori(word, inter)
+                    valid = validate_word_shiritori(word)
                     if not valid:
                         continue
 
