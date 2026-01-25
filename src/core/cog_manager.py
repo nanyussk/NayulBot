@@ -1,6 +1,7 @@
-import os
 import logging
 from typing import TYPE_CHECKING, Dict
+
+from .cog_registry import discover_cog_modules
 
 if TYPE_CHECKING:
     from src import NayulCore
@@ -13,28 +14,37 @@ class CogManager:
         self.path = path
         self.extensions: Dict[str, str] = {} # Armazena as extensões como um dicionário
 
+    def _refresh_extensions(self) -> None:
+        log.debug('Atualizando lista de extensoes.')
+        self.extensions = discover_cog_modules(self.path)
+        log.debug('Extensoes carregadas: %s', len(self.extensions))
+
+    def _resolve_extension(self, extension: str) -> str:
+        if extension in self.extensions:
+            return self.extensions[extension]
+        matches = [module for module in self.extensions.values() if module.endswith(f'.{extension}')]
+        if len(matches) == 1:
+            return matches[0]
+        if not matches:
+            log.error('Extensao nao encontrada: %s', extension)
+            raise KeyError(f'Extensao nao encontrada: {extension}')
+        log.error('Extensao ambigua: %s', extension)
+        raise KeyError(f'Extensao ambigua: {extension}')
+
     async def load_cogs(self, nayul: 'NayulCore'):
         """ Carrega todas as extensões do bot. """
-        for root, _, files in os.walk(self.path):
-            if '_internal' in root.split(os.path.sep):
+        self._refresh_extensions()
+        for key, module in self.extensions.items():
+            try:
+                await nayul.load_extension(module)
+                log.info(f'✅ Carregado {key!r}.')
+            except Exception:
+                log.exception(f'Erro ao carregar a extensão {key!r}:')
                 continue
-            for file in files:
-                if file.endswith('.py'):
-                    rel_path = os.path.relpath(os.path.join(root, file), start=os.path.dirname(os.path.dirname(__file__)))
-                    if rel_path.startswith('cogs' + os.path.sep):
-                        rel_path = 'src' + os.path.sep + rel_path
-
-                    module = rel_path[:-3].replace(os.path.sep, '.')
-                    self.extensions[file[:-3]] = module
-                    try:
-                        await nayul.load_extension(module)
-                        log.info(f'✅ Carregado {file!r} de {root[9:]!r}.')
-                    except Exception:
-                        log.exception(f'Erro ao carregar a extensão {file}:')
-                        continue
 
     async def reload_cogs(self, nayul: 'NayulCore'):
         """ Recarrega todas as extensões do bot. """
+        self._refresh_extensions()
         for key, module in self.extensions.items():
             try:
                 await nayul.reload_extension(module)
@@ -47,8 +57,8 @@ class CogManager:
         """ Descarrega as extensões do bot. """
         for key, module in self.extensions.items():
             try:
-                await nayul.reload_extension(module)
-                log.debug(f'❌ Descarregado Recarregado {key!r}')
+                await nayul.unload_extension(module)
+                log.debug(f'❌ Descarregado {key!r}')
             except Exception:
                 log.exception(f'Erro ao descarregar a extensão {key!r}:')
                 continue
@@ -56,7 +66,7 @@ class CogManager:
     async def reload_cog_one(self, nayul: 'NayulCore', extension: str):
         """ Recarrega uma extensão do bot. """
         try:
-            module = self.extensions[extension]
+            module = self._resolve_extension(extension)
             await nayul.reload_extension(module)
             log.debug(f'🔄 Recarregado {extension!r}.')
         except Exception:
@@ -65,8 +75,10 @@ class CogManager:
     async def load_cog_one(self, nayul: 'NayulCore', extension: str):
         """ Carrega uma extensão do bot. """
         try:
-            module = self.extensions[extension]
-            await nayul.reload_extension(module)
+            if not self.extensions:
+                self._refresh_extensions()
+            module = self._resolve_extension(extension)
+            await nayul.load_extension(module)
             log.debug(f'✅ Carregado {extension!r}.')
         except Exception:
             log.exception(f'Erro ao carregar a extensão {extension!r}:')
@@ -74,8 +86,8 @@ class CogManager:
     async def unload_cog_one(self, nayul: 'NayulCore', extension: str):
         """ Descarrega uma extensão do bot. """
         try:
-            module = self.extensions[extension]
-            await nayul.reload_extension(module)
+            module = self._resolve_extension(extension)
+            await nayul.unload_extension(module)
             log.debug(f'❌ Descarregado {extension!r}.')
         except Exception:
             log.exception(f'Erro ao descarregar a extensão {extension}:')
