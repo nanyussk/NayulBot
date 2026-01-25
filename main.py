@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from src.env import ENV
+from src.config import ENV
 from src import NayulCore
 
 class ColorizedHandler(logging.StreamHandler):

@@ -6,30 +6,21 @@ import logging
 import asyncio
 import aiohttp
 from time import time
-from dotenv import load_dotenv
 
-from src.env import ENV
+from src.config import ENV, setup_runtime_env
 from .emoji_manager import EmojiManager
 from .cog_manager import CogManager
 from .restrict_help import RestrictedHelpCommand
 from src.database import DatabaseClient
 
 log = logging.getLogger(__name__)
-load_dotenv()
-os.environ.update(
-    {
-        'JISHAKU_NO_UNDERSCORE': 'True', # Desativa o prefixo de sublinhado para os comandos do Jishaku
-        'JISHAKU_NO_DM_TRACEBACK': 'True', # Desativa o envio de mensagens de erro por DM
-        'JISHAKU_HIDE': 'True', # Esconde os comandos do Jishaku na lista de comandos disponíveis
-        'JISHAKU_FORCE_PAGINATOR': 'True', # Força o uso do paginador do Jishaku
-    }
-)
 
 class NayulCore(commands.AutoShardedBot):
     """
     Esta classe é responsável por inicializar o bot, carregar as extensões e gerenciar os eventos.
     """
     def __init__(self):
+        setup_runtime_env()
         intents = discord.Intents.all()
         intents.message_content = True  # Necessário para ler o conteúdo das mensagens
         intents.members = True # Necessário para acessar informações dos membros
@@ -57,14 +48,18 @@ class NayulCore(commands.AutoShardedBot):
                     
     async def setup_hook(self):
             """Método chamado enquanto o bot está inicinado."""
+            log.debug('setup_hook iniciado.')
             try:
                 self.db = await DatabaseClient.connect()
             except Exception:
+                log.critical('Falha ao conectar no banco, encerrando.')
                 await self.close()
+                return
 
             await self.emoji_manager.config_emojis(self)
             await self.cog_manager.load_cogs(self)
             await self.load_extension('jishaku')
+            log.debug('setup_hook finalizado.')
 
     async def on_ready(self):
             """Método chamado quando o bot está pronto."""
@@ -77,7 +72,7 @@ class NayulCore(commands.AutoShardedBot):
 
     async def start(self, token, *, reconnect = True):
         """Método chamado para iniciar o bot."""
-            
+        log.info('Iniciando cliente Discord...')
         return await super().start(token, reconnect=reconnect)
     
     async def close(self):

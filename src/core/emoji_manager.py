@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from src.core import NayulCore
 
-from src.env import ENV
+from src.config import ENV
 from src.utils.emojis import Emoji
 
 log = logging.getLogger(__name__)
@@ -126,7 +126,7 @@ class EmojiManager:
             path = os.path.join(emojis_path, image)
             with open(path, 'rb') as file:
                 emoji_created = await nayul.create_application_emoji(name=emoji_name, image=file.read())
-                self.emojis_data[emoji_created.name] = _format_emoji(emoji)
+                self.emojis_data[emoji_created.name] = _format_emoji(emoji_created)
                 log.info(f'✨ Emoji {emoji_name} adicionado com sucesso.')
 
     async def _get_emojis(self, nayul: 'NayulCore'):

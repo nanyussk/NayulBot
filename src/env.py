@@ -1,11 +1,8 @@
 import os
 import sys
 import logging
-from dotenv import load_dotenv
 from typing import List
 from dataclasses import dataclass
-
-load_dotenv()
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +33,7 @@ class Env:
 
     @classmethod
     def load(cls) -> 'Env':
+        log.debug('Carregando variaveis de ambiente.')
         return cls(
             TOKEN=_validate_required('TOKEN'),
             OWNER_IDS=_str_to_list_of_ints(_validate_required('OWNER_IDS')),
