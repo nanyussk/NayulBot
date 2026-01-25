@@ -1,3 +1,20 @@
+[project]
+name = "nayulbot"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = [
+    "discord-py>=2.6.4",
+    "emoji>=2.15.0",
+    "jishaku>=2.6.3",
+    "motor>=3.7.1",
+    "psutil>=7.2.1",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
+    "pyyaml>=6.0.3",
+    "tzdata>=2025.3",
+    "unidecode>=1.4.0",
+]
+
 [tool.flake8]
 max-line-length = 88
 ignore = ['E203', 'W503']
@@ -14,7 +31,7 @@ typeCheckingMode = 'off'
 reportMissingImports = true
 reportUnusedImport = true
 reportUnusedVariable = true
-pythonVersion = '3.13'
+pythonVersion = '3.11'
 venvPath = '.'
 venv = '.venv'
 
