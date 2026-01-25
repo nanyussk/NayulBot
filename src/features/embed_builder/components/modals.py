@@ -1,14 +1,18 @@
-import discord
-from discord.ui import TextInput
-
 import json
+import re
+import logging
+
 import aiohttp
+import discord
 import emoji as emoji_lib
+from discord.ui import TextInput
 
 from src import NayulCore
 from src.utils.emojis import Emoji
 from src.utils.others import Colors
-from ..utils import is_valid_url, is_valid_color, re
+from ..utils import is_valid_color, is_valid_url
+
+log = logging.getLogger(__name__)
 
 class ModalTitle(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -45,6 +49,7 @@ class ModalTitle(discord.ui.Modal):
             self.embeds[index] = self.embed
             
             await inter.response.edit_message(embed=self.embed)
+            log.debug('Titulo atualizado embed_builder user_id=%s', inter.user.id)
         except discord.errors.HTTPException as e:
             if e.status == 400 and 'embeds.0.description' in str(e):
                 self.embed.description = 'A embed não pode ser vazia!'
@@ -52,6 +57,7 @@ class ModalTitle(discord.ui.Modal):
                 await inter.response.edit_message(embed=self.embed)
             else:
                 await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
+                log.exception('Erro ao atualizar titulo embed_builder user_id=%s', inter.user.id)
 
 class ModalDescription(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -76,6 +82,7 @@ class ModalDescription(discord.ui.Modal):
             self.embeds[index] = self.embed
             
             await inter.response.edit_message(embed=self.embed)
+            log.debug('Descricao atualizada embed_builder user_id=%s', inter.user.id)
         except discord.errors.HTTPException as e:
             if e.status == 400 and 'embeds.0.description' in str(e):
                 self.embed.description = 'A embed não pode ser vazia!'
@@ -83,6 +90,7 @@ class ModalDescription(discord.ui.Modal):
                 await inter.response.edit_message(embed=self.embed)
             else:
                 await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
+                log.exception('Erro ao atualizar descricao embed_builder user_id=%s', inter.user.id)
 
 class ModalColor(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -93,7 +101,7 @@ class ModalColor(discord.ui.Modal):
         self._color = TextInput(
             label='Cor da embed (em hexadecimal ou decimal)',
             placeholder='Defina a cor da embed em hexadecimal ou decimal (ex: #ff0000 ou 16711680)',
-            default=int(embed.color),
+            default=str(int(embed.color)) if embed.color else '',
             style=discord.TextStyle.short,
             required=True
         )
@@ -109,8 +117,10 @@ class ModalColor(discord.ui.Modal):
             self.embeds[index] = self.embed
             
             await inter.response.edit_message(embed=self.embed)
+            log.debug('Cor atualizada embed_builder user_id=%s', inter.user.id)
         except ValueError:
             await inter.response.send_message(f'{Emoji.error} **|** Cor inválida! Defina a cor da embed em hexadecimal ou decimal. (ex: #ff0000 ou 16711680)', ephemeral=True)
+            log.debug('Cor invalida embed_builder user_id=%s', inter.user.id)
 
 class ModalAuthor(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -156,6 +166,7 @@ class ModalAuthor(discord.ui.Modal):
             self.embeds[index] = self.embed
             
             await inter.response.edit_message(embed=self.embed)
+            log.debug('Autor atualizado embed_builder user_id=%s', inter.user.id)
         except discord.errors.HTTPException as e:
             if e.status == 400 and 'embeds.0.author' in str(e):
                 self.embed.set_author(name=self._author.value, icon_url=self._icon_url.value, url=self._url.value)
@@ -163,6 +174,7 @@ class ModalAuthor(discord.ui.Modal):
                 await inter.response.edit_message(embed=self.embed)
             else:
                 await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
+                log.exception('Erro ao atualizar autor embed_builder user_id=%s', inter.user.id)
 
 class ModalImageAndThumbnail(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -201,6 +213,7 @@ class ModalImageAndThumbnail(discord.ui.Modal):
             self.embeds[index] = self.embed
             
             await inter.response.edit_message(embed=self.embed)
+            log.debug('Imagem/thumbnail atualizada embed_builder user_id=%s', inter.user.id)
         except discord.errors.HTTPException as e:
             if e.status == 400 and 'embeds.0.author' in str(e):
                 self.embed.set_image(url=self._image.value)
@@ -209,6 +222,7 @@ class ModalImageAndThumbnail(discord.ui.Modal):
                 await inter.response.edit_message(embed=self.embed)
             else:
                 await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
+                log.exception('Erro ao atualizar imagem/thumbnail embed_builder user_id=%s', inter.user.id)
 
 class ModalFields(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed, items: list[discord.ui.Item], index: int | None = None):
@@ -268,6 +282,7 @@ class ModalFields(discord.ui.Modal):
 
         from .views import FieldsView
         await inter.response.edit_message(embed=self.embed, view=FieldsView(embeds=self.embeds, embed=self.embed, items=self.items))
+        log.debug('Campos atualizados embed_builder user_id=%s', inter.user.id)
 
 class ModalFooter(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -286,7 +301,7 @@ class ModalFooter(discord.ui.Modal):
         self._url = TextInput(
             label='URL da rodapé',
             placeholder='Imagem que ficará ao lado do texto...',
-            default=embed.author.url,
+            default=embed.footer.icon_url,
             style=discord.TextStyle.long,
             required=False
         )
@@ -304,6 +319,7 @@ class ModalFooter(discord.ui.Modal):
             self.embeds[index] = self.embed
             
             await inter.response.edit_message(embed=self.embed)
+            log.debug('Rodape atualizado embed_builder user_id=%s', inter.user.id)
         except discord.errors.HTTPException as e:
             if e.status == 400 and 'embeds.0.footer' in str(e):
                 self.embed.set_footer(text=self._footer.value, icon_url=self._url.value)
@@ -311,6 +327,7 @@ class ModalFooter(discord.ui.Modal):
                 await inter.response.edit_message(embed=self.embed)
             else:
                 await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
+                log.exception('Erro ao atualizar rodape embed_builder user_id=%s', inter.user.id)
             
 class ModalSendJSON(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed):
@@ -340,8 +357,10 @@ class ModalSendJSON(discord.ui.Modal):
             self.embed = discord.Embed.from_dict(json_data)
             self.embeds[index] = self.embed
             await inter.response.edit_message(embed=self.embed)
+            log.debug('JSON aplicado embed_builder user_id=%s', inter.user.id)
         except json.JSONDecodeError:
             await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
+            log.debug('JSON invalido embed_builder user_id=%s', inter.user.id)
 
 class ModalWebhook(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], embed: discord.Embed, items: list[discord.ui.Item]):
@@ -370,7 +389,11 @@ class ModalWebhook(discord.ui.Modal):
         if not is_valid_url(self._avatar.value):
             return await inter.response.send_message(f'{Emoji.error} **|** URL do avatar inválido.', ephemeral=True)
         
-        if not inter.channel.permissions_for(inter.guild.get_member(inter.client.user.id)).manage_webhooks:
+        if not inter.channel or not inter.guild:
+            return await inter.response.send_message(f'{Emoji.error} **|** Não foi possível acessar o canal.', ephemeral=True)
+
+        member = inter.guild.get_member(inter.client.user.id)
+        if not member or not inter.channel.permissions_for(member).manage_webhooks:
             return await inter.response.send_message(f'{Emoji.error} **|** Eu preciso da permissão de `Gerenciar Webhooks` para enviar a embed.', ephemeral=True)
 
         embed_loading = discord.Embed(description=f'## {Emoji.loading_v1} **|** Enviando a embed...', color=Colors.MYSTIC_PURPLE)
@@ -398,6 +421,7 @@ class ModalWebhook(discord.ui.Modal):
 
             from ..main_panel import MainView
             await inter.edit_original_response(embeds=self.embeds, view=MainView(embeds=self.embeds, items=self.items))
+            log.info('Embeds enviadas via webhook user_id=%s', inter.user.id)
 
 class ModalButton(discord.ui.Modal):
     def __init__(self, *, embeds: list[discord.Embed], items: list[discord.ui.Item], item: discord.ui.Item):
@@ -412,6 +436,7 @@ class ModalButton(discord.ui.Modal):
             label, url, emoji = item.label, item.url, item.emoji
         else:
             label, url, emoji = None, None, None
+        emoji_default = str(emoji) if emoji else None
 
         self._name = TextInput(
             label='Nome do Botão',
@@ -430,7 +455,7 @@ class ModalButton(discord.ui.Modal):
         self._emoji = TextInput(
             label='Emoji do Botão (Opcional)',
             placeholder='Insira o emoji do botão...',
-            default=emoji,
+            default=emoji_default,
             style=discord.TextStyle.short,
             required=False
         )
@@ -468,3 +493,4 @@ class ModalButton(discord.ui.Modal):
 
         from .views import EditButtonView
         await inter.response.edit_message(view=EditButtonView(embeds=self.embeds, items=self.items, item=self.item))
+        log.debug('Botao atualizado embed_builder user_id=%s', inter.user.id)

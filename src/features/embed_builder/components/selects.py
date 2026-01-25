@@ -1,10 +1,30 @@
 import discord
+import logging
 
 from src import NayulCore
 from src.utils.emojis import Emoji
 from src.utils.others import Colors
 from ..edit_panel import EditEmbed
 from ..utils import safe_emoji
+
+log = logging.getLogger(__name__)
+
+def _build_field_options(embed: discord.Embed) -> tuple[list[discord.SelectOption], bool]:
+    if not embed.fields:
+        return [discord.SelectOption(label='Nenhum campo encontrado')], True
+
+    options = []
+    for index, field in enumerate(embed.fields):
+        label = field.name or 'Sem nome'
+        label_display = label[:50] + '...' if len(label) >= 50 else label
+        options.append(
+            discord.SelectOption(
+                label=f'{index + 1}. {label_display}',
+                description=label_display,
+                value=str(index),
+            )
+        )
+    return options, False
 
 class ChoiceEmbedSelect(discord.ui.Select):
     def __init__(self, *, embeds: list[discord.Embed], items: list[discord.ui.Item]) -> None:
@@ -14,7 +34,7 @@ class ChoiceEmbedSelect(discord.ui.Select):
                 discord.SelectOption(
                     label=f'Embed {index + 1}',
                     description=embed.title[:50] + '...' if embed.title and len(embed.title) >= 50 else embed.title,
-                    value=index
+                    value=str(index),
                 )
             )
         super().__init__(
@@ -28,6 +48,7 @@ class ChoiceEmbedSelect(discord.ui.Select):
     async def callback(self, inter: discord.Interaction[NayulCore]) -> None:
         embed = self.embeds[int(self.values[0])]
         await inter.response.edit_message(embed=embed, view=EditEmbed(embeds=self.embeds, embed=embed, items=self.items))
+        log.debug('Embed selecionada index=%s user_id=%s', self.values[0], inter.user.id)
 
 class ColorSelect(discord.ui.Select):
     def __init__(self, embeds: list[discord.Embed], embed: discord.Embed) -> None:
@@ -60,7 +81,7 @@ class ColorSelect(discord.ui.Select):
 
         super().__init__(
             placeholder='Editar a cor da embed...',
-            options=[discord.SelectOption(label=label, emoji=emoji, value=value) for value, label, emoji in options],
+            options=[discord.SelectOption(label=label, emoji=emoji, value=str(value)) for value, label, emoji in options],
             row=1
         )
 
@@ -79,30 +100,14 @@ class ColorSelect(discord.ui.Select):
                 self.embed.color = int(self.values[0])
                 self.embeds[index] = self.embed
                 await inter.response.edit_message(embed=self.embed)
+        log.debug('Cor selecionada embed_builder value=%s user_id=%s', self.values[0], inter.user.id)
 
 class EditFieldSelect(discord.ui.Select):
-    def __init__(self, embeds: list[discord.Embed], embed: discord.Embed, items: discord.ui.Item) -> None:
+    def __init__(self, embeds: list[discord.Embed], embed: discord.Embed, items: list[discord.ui.Item]) -> None:
         self.embeds=embeds
         self.embed=embed
         self.items=items
-        options = []
-        if embed.fields:
-            disabled = False
-            for index, field in enumerate(embed.fields):
-                options.append(
-                  discord.SelectOption(
-                        label=f'{index + 1}. {field.name[:50] + "..." if field.name and len(field.name) >= 50 else field.name}',
-                        description=field.name[:50] + '...' if field.name and len(field.name) >= 50 else field.name,
-                        value=index
-                    )
-                )
-        else:
-            disabled = True
-            options.append(
-                discord.SelectOption(
-                    label='Nenhum campo encontrado',
-                )
-            )
+        options, disabled = _build_field_options(embed)
 
         super().__init__(
             placeholder='Escolha um campo para editar...',
@@ -113,30 +118,14 @@ class EditFieldSelect(discord.ui.Select):
     async def callback(self, inter: discord.Interaction[NayulCore]) -> None:
         from .modals import ModalFields
         await inter.response.send_modal(ModalFields(embeds=self.embeds, embed=self.embed, items=self.items, index=int(self.values[0])))
+        log.debug('Campo selecionado para editar index=%s user_id=%s', self.values[0], inter.user.id)
 
 class DeleteFieldSelect(discord.ui.Select):
-    def __init__(self, embeds: list[discord.Embed], embed: discord.Embed, items: discord.ui.Item) -> None:
+    def __init__(self, embeds: list[discord.Embed], embed: discord.Embed, items: list[discord.ui.Item]) -> None:
         self.embeds=embeds
         self.embed=embed
         self.items=items
-        options = []
-        if embed.fields:
-            disabled = False
-            for index, field in enumerate(embed.fields):
-                options.append(
-                  discord.SelectOption(
-                        label=f'{index + 1}. {field.name[:50] + "..." if field.name and len(field.name) >= 50 else field.name}',
-                        description=field.name[:50] + '...' if field.name and len(field.name) >= 50 else field.name,
-                        value=index
-                    )
-                )
-        else:
-            disabled = True
-            options.append(
-                discord.SelectOption(
-                    label='Nenhum campo encontrado',
-                )
-            )
+        options, disabled = _build_field_options(embed)
 
         super().__init__(
             placeholder='Escolha um campo para deletar...',
@@ -153,6 +142,7 @@ class DeleteFieldSelect(discord.ui.Select):
 
             from .views import FieldsView
             await inter.response.edit_message(embed=self.embed, view=FieldsView(embeds=self.embeds, embed=self.embed, items=self.items))
+            log.info('Campo removido index=%s user_id=%s', self.values[0], inter.user.id)
         except discord.errors.HTTPException as e:
             if e.status == 400 and 'embeds.0.fields' in str(e):
                 self.embed.description = 'A embed não pode ser vazia!'
@@ -162,7 +152,7 @@ class DeleteFieldSelect(discord.ui.Select):
                 await inter.response.send_message(f'{Emoji.error} **|** Ocorreu um erro ao editar a embed.', ephemeral=True)
 
 class ChoiceItemSelect(discord.ui.Select):
-    def __init__(self, *, embeds: list[discord.Embed], items: list[discord.ui.Item], item: discord.ui.Item) -> None:
+    def __init__(self, *, embeds: list[discord.Embed], items: list[discord.ui.Item], item: discord.ui.Item | None) -> None:
         options = []
         if not items:
             options.append(
@@ -178,8 +168,8 @@ class ChoiceItemSelect(discord.ui.Select):
                     discord.SelectOption(
                         emoji=safe_emoji(item.emoji),
                         label=item.label[:50] + '...' if item.label and len(item.label) >= 50 else item.label,
-                        description= item.url[:50] + '...' if item.url and len(item.url) >= 50 else item.url,
-                        value=index
+                        description=item.url[:50] + '...' if item.url and len(item.url) >= 50 else item.url,
+                        value=str(index),
                     )
                 )
         super().__init__(
@@ -195,3 +185,4 @@ class ChoiceItemSelect(discord.ui.Select):
     async def callback(self, inter: discord.Interaction[NayulCore]) -> None:
         from .views import EditButtonView
         await inter.response.edit_message(view=EditButtonView(embeds=self.embeds, items=self.items, item=self.items[int(self.values[0])]))
+        log.debug('Botao selecionado index=%s user_id=%s', self.values[0], inter.user.id)

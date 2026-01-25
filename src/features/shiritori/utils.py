@@ -1,11 +1,17 @@
-import discord
-from typing import TYPE_CHECKING, List, Dict, Literal, Any
-from datetime import datetime
-
 import re
+import logging
+from datetime import datetime
+from functools import lru_cache
+from typing import TYPE_CHECKING, Any, Dict, List, Literal
+
+import discord
+
 from src.utils.emojis import Emoji
 from src.utils.others import read_txt_file
 from .types import PlayerStats
+from datetime import datetime
+
+log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .views import ConfirmPlayer
@@ -21,13 +27,19 @@ def configure_player_button(button: 'ConfirmPlayer'):
     button.label = None
     button.emoji = Emoji.check
 
+@lru_cache(maxsize=1)
+def _load_words() -> set[str]:
+    # Cacheia o arquivo para evitar leitura a cada jogada.
+    words_list = read_txt_file('resources/words/all/pt-BR.txt').splitlines()
+    words = {word.strip().lower() for word in words_list if word.strip()}
+    log.info('Palavras carregadas para Shiritori: %s', len(words))
+    return words
+
 def validate_word_shiritori(word: str) -> bool:
     if len(word) < 3 or not re.search(r'[aeiou].$|.[aeiou]$', word):
         return False
 
-    words_list = read_txt_file('resources/words/all/pt-BR.txt').split('\n')
-    
-    return word in words_list
+    return word in _load_words()
 
 def get_time_limit(used_words_count: int) -> int:
     """
@@ -41,10 +53,9 @@ def get_time_limit(used_words_count: int) -> int:
     """
     if used_words_count <= 50:
         return 60
-    elif used_words_count <= 100:
+    if used_words_count <= 100:
         return 30
-    else:
-        return 15
+    return 15
 
 def get_phase_message(time_limit: int, ends_at: int) -> str:
     """
@@ -59,10 +70,9 @@ def get_phase_message(time_limit: int, ends_at: int) -> str:
     """
     if time_limit == 60:
         return f'⏱ Tempo para responder: **60 segundos** (<t:{ends_at}:R>)'
-    elif time_limit == 30:
+    if time_limit == 30:
         return f'⚠️ Atenção! Tempo reduzido para **30 segundos** (<t:{ends_at}:R>)'
-    else:
-        return f'🔥 Morte Súbita! Tempo crítico: **15 segundos** (<t:{ends_at}:R>)'
+    return f'🔥 Morte Súbita! Tempo crítico: **15 segundos** (<t:{ends_at}:R>)'
     
 def create_stats_dict(players: List[discord.Member]) -> Dict[int, PlayerStats]:
     """

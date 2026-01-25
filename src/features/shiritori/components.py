@@ -1,10 +1,10 @@
+import asyncio
+import logging
+import time
+from typing import Set
+
 import discord
 from discord import ui
-
-import time
-import logging
-import asyncio
-from typing import Set
 
 from src import NayulCore
 from src.utils.emojis import Emoji
@@ -14,19 +14,20 @@ from .views import ConfirmPlayer, SelectPlayers, ConfirmStartGame
 
 log = logging.getLogger(__name__)
 
-#View principal (components v2)
+# View principal (components v2)
 class MainView(ui.LayoutView):
     def __init__(self, author: discord.Member, players: Set[discord.Member]):
         super().__init__(timeout=300)
-        self.start_time: int = int(time.time() + 120) #Tempo para o iniciar a partida em timestamp
-        self.auto_start: bool = True #Se iniciar automáticamente está ativo ou não
-        self.author: discord.Member = author #Autor da partida (quem executou o comando)
-        self.players: Set[discord.Member] = players #Lista com os jogadores (sem confirmação)
-        self.confirmed_players: Set[discord.Member] = set() #Lista com os jogadores (que irão jogar)
-        self.start_game = start_game_shiritori #Função para iniciar a partida
+        self.start_delay: int = 120
+        self.start_time: int = int(time.time() + self.start_delay) # Timestamp para iniciar a partida
+        self.auto_start: bool = True # Iniciar automaticamente ou nao
+        self.author: discord.Member = author # Autor da partida
+        self.players: Set[discord.Member] = players # Jogadores (sem confirmacao)
+        self.confirmed_players: Set[discord.Member] = set() # Jogadores confirmados
+        self.start_game = start_game_shiritori # Funcao para iniciar a partida
         self.container: ui.Container = Container(self)
 
-        #Adicionando o item a view
+        # Adiciona itens da view
         self.add_item(self.container)
         self.confirm_button = ConfirmStartGame(self)
         self.add_item(ui.ActionRow(*[self.confirm_button]))
@@ -34,7 +35,7 @@ class MainView(ui.LayoutView):
     async def disable_all_items(self):
         """Desativa todos os botões da view."""
 
-        #Desativa todos os botões no container
+        # Desativa todos os botoes no container
         for item in self.container.children:
             if isinstance(item, ui.Section) and isinstance(item.accessory, ConfirmPlayer):
                 item.accessory.disabled = True
@@ -43,7 +44,7 @@ class MainView(ui.LayoutView):
                     if isinstance(subitem, SelectPlayers):
                         subitem.disabled = True
 
-        #Desativa os que estão fora do container
+        # Desativa os que estao fora do container
         for child in self.children:
             if isinstance(child, ui.ActionRow):
                 for subchild in child.children:
@@ -62,10 +63,11 @@ class MainView(ui.LayoutView):
             Exception: Erro ao iniciar a partida.
         """
         try:
-            await asyncio.sleep(120)
+            # Aguarda o tempo limite de confirmacao.
+            await asyncio.sleep(self.start_delay)
 
             if not self.auto_start: 
-                return # Retorna caso já tenha iniciado a partida
+                return # Retorna caso ja tenha iniciado a partida
             
             await self.disable_all_items()
             await inter.edit_original_response(
@@ -83,13 +85,14 @@ class MainView(ui.LayoutView):
                 )
                 return
             
-            await self.start_game(self, inter)            
+            await self.start_game(self, inter)
+            log.info('Partida iniciada automaticamente shiritori channel_id=%s', inter.channel.id if inter.channel else None)
         except Exception as e:
-            #Loga o erro
+            # Loga o erro
             log.error('Erro em start_game_auto:', exc_info=e)
            
 
-#Container com informações, imagens, botões e menu de seleção(membros)
+# Container com informacoes, imagens, botoes e menu de selecao (membros)
 class Container(ui.Container):
     def __init__(self, view: MainView):
         super().__init__(accent_color=0x223f4f)

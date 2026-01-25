@@ -1,16 +1,19 @@
+from typing import TYPE_CHECKING, Dict
+import logging
+
 import discord
 from discord import ui
 
-from typing import TYPE_CHECKING, Dict
-
 from src import NayulCore
-from .utils import configure_player_button
-from .types import PlayerStats
-from src.utils.emojis import Emoji
 from src.utils import nayul_decorators
+from src.utils.emojis import Emoji
+from .types import PlayerStats
+from .utils import configure_player_button
 
 if TYPE_CHECKING:
     from .components import MainView
+
+log = logging.getLogger(__name__)
 
 class ConfirmPlayer(ui.Button):
     """Botão de confirmação do jogador na partida.
@@ -47,6 +50,7 @@ class ConfirmPlayer(ui.Button):
             everyone=False,
             roles=False
         ))
+        log.info('Jogador confirmado shiritori user_id=%s', inter.user.id)
 
 class ConfirmStartGame(ui.Button):
     """Botão para o autor iniciar a partida
@@ -61,8 +65,10 @@ class ConfirmStartGame(ui.Button):
     async def callback(self, inter: discord.Interaction[NayulCore]):
         # Garante que apenas o autor pode iniciar a partida
         if inter.user != self.view_instance.author:
-            return await inter.response.send_message(f'{Emoji.error} Apenas {self.view_instance.author.mention} (criador da partida) pode iniciar o jogo.'
-, ephemeral=True)
+            return await inter.response.send_message(
+                f'{Emoji.error} Apenas {self.view_instance.author.mention} (criador da partida) pode iniciar o jogo.',
+                ephemeral=True,
+            )
         # Somente pode iniciar se 2 jogadores ou mais estiverem confirmado
         elif len(self.view_instance.confirmed_players) < 2:
             return await inter.response.send_message('⚠️ Você precisa de pelo menos 2 jogadores confirmados para iniciar a partida.', ephemeral=True)
@@ -75,6 +81,7 @@ class ConfirmStartGame(ui.Button):
             everyone=False
         ))
         await self.view_instance.start_game(self.view_instance, inter)
+        log.info('Partida iniciada manualmente shiritori author_id=%s', inter.user.id)
         
 class SelectPlayers(ui.UserSelect):
     """Menu de seleção de jogadores para o shiritori.
@@ -98,8 +105,8 @@ class SelectPlayers(ui.UserSelect):
                 continue
             if player not in self.view_instance.players:
                 if len(self.view_instance.players) < 25:
-                    self.view_instance.players.append(player)
-            elif player in self.view_instance.players:
+                    self.view_instance.players.add(player)
+            else:
                 self.view_instance.players.remove(player)
 
             if player in self.view_instance.confirmed_players and player not in self.view_instance.players:
@@ -118,6 +125,7 @@ class SelectPlayers(ui.UserSelect):
             users=False,
             everyone=False
         ))
+        log.debug('Jogadores atualizados shiritori author_id=%s total=%s', inter.user.id, len(self.view_instance.players))
 
 class PlayerStatusSelect(ui.Select):
     """
@@ -169,6 +177,7 @@ class PlayerStatusSelect(ui.Select):
         embed.add_field(name='🏆Maior palavra', value=f'```{long}```', inline=False)
         embed.add_field(name='⏳ Tempo na partida', value=f'```{time}```', inline=False)
         await inter.response.send_message(embed=embed, ephemeral=True)
+        log.debug('Status exibido shiritori user_id=%s target_id=%s', inter.user.id, player_id)
 
 class PlayerStatusSelectView(ui.View):
     def __init__(self, players_stats: Dict[int, PlayerStats]):

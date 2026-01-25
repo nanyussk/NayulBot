@@ -1,10 +1,13 @@
-import discord
-from discord.ext import commands
 from discord import app_commands
+import discord
+import logging
+from discord.ext import commands
 
 from src import NayulCore
+from src.features.shiritori import MainView as MainViewShiritori
 from src.utils import nayul_decorators
-from ._internal.shiritori import MainView as MainViewShiritori
+
+log = logging.getLogger(__name__)
 
 class PlayGames(commands.Cog):
     def __init__(self, nayul: NayulCore):
@@ -26,11 +29,13 @@ class PlayGames(commands.Cog):
     @nayul_decorators.check_user_banned()
     async def shiritori(self, inter: discord.Interaction[NayulCore]):
         """Inicia uma partida de Shiritori."""
-        players: set[discord.Member] = [inter.user]
-        view = MainViewShiritori(inter.user,players)
+        log.info('Comando /jogar shiritori user_id=%s', inter.user.id)
+        players: set[discord.Member] = {inter.user}
+        view = MainViewShiritori(inter.user, players)
 
         await inter.response.send_message(
             view=view, 
+            # Evita menções desnecessarias durante o jogo.
             allowed_mentions=discord.AllowedMentions(
                 users=False,
                 roles=False,
@@ -40,3 +45,4 @@ class PlayGames(commands.Cog):
 
 async def setup(nayul: NayulCore):
     await nayul.add_cog(PlayGames(nayul))
+    log.debug('Cog PlayGames carregado.')

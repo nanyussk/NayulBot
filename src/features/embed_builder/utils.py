@@ -1,4 +1,5 @@
 import re
+
 import discord
 
 def is_valid_url(url: str) -> bool:
@@ -11,7 +12,7 @@ def is_valid_url(url: str) -> bool:
         bool: Retorna True se a string for uma URL válida, caso contrário, False.
     """
 
-    return re.search(r'http[s]?://(?:[A-Za-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', url)
+    return bool(re.search(r'http[s]?://(?:[A-Za-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', url))
 
 def is_valid_color(hex_color: str | int) -> bool | ValueError:
     """Verifica se uma string ou inteiro fornecido é uma cor válida.
@@ -23,14 +24,25 @@ def is_valid_color(hex_color: str | int) -> bool | ValueError:
         hex_color (str | int): A string ou inteiro que será verificado.
 
     Returns:
-        bool | ValueError: Retorna True se a cor for válida, caso contrário, ValueError com a mensagem 'Cor inválida.'
+        int: Retorna a cor em decimal.
+
+    Raises:
+        ValueError: Se a cor for inválida.
     """
-    if re.search(r'^#[a-fA-F0-9]+$', hex_color):
-        return int(hex_color[1:], 16)
-    elif hex_color.isdigit() and 0 <= int(hex_color) <= 16777215:
-        return int(hex_color)
-    else:
+    if isinstance(hex_color, int):
+        if 0 <= hex_color <= 16777215:
+            return hex_color
         raise ValueError('Cor inválida.')
+
+    if not isinstance(hex_color, str):
+        raise ValueError('Cor inválida.')
+
+    value = hex_color.strip()
+    if re.search(r'^#[a-fA-F0-9]+$', value):
+        return int(value[1:], 16)
+    if value.isdigit() and 0 <= int(value) <= 16777215:
+        return int(value)
+    raise ValueError('Cor inválida.')
     
 def safe_emoji(emoji: str | discord.PartialEmoji) -> str | discord.PartialEmoji | None:
     """Verifica se um emoji é válido e seguro para ser exibido.

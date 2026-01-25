@@ -1,12 +1,12 @@
-import discord
-
-import time
 import asyncio
-import random
 import logging
-from unidecode import unidecode
+import random
+import time
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+import discord
+from unidecode import unidecode
 
 if TYPE_CHECKING:
     from .components import MainView
@@ -23,7 +23,7 @@ from .utils import (
 
 log = logging.getLogger(__name__)
 
-#Inicia a partida
+# Inicia a partida
 async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[NayulCore]):
     """Inicia a partida de Shiritori.
 
@@ -34,6 +34,10 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
     Raises:
         Exception: Erro ao iniciar a partida ou durante o jogo.
     """
+    if inter.channel is None:
+        return
+
+    channel = inter.channel
     players = list(view.confirmed_players)
     used_words = set()
     previous_word = None
@@ -41,8 +45,9 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
     players_stats = create_stats_dict(players) # Cria um dicionário de estatísticas dos jogadores
     random.shuffle(players) # Embaralha a lista de jogadores
     players_mentions = ', '.join([p.mention for p in players])
+    log.info('Shiritori iniciado channel_id=%s players=%s', channel.id, len(players))
 
-    await inter.channel.send(
+    await channel.send(
         content=f'⚠️ A partida irá começar <t:{int(time.time()) + 10}:R>!\n🎮 Jogadores: {players_mentions}',
         delete_after=10
     )
@@ -76,7 +81,7 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
                     color=discord.Color.blurple()
                 )
             # Envia a mensagem para o jogador atual
-            message_player = await inter.channel.send(
+            message_player = await channel.send(
                 content=player.mention,
                 embed=embed_waiting,
             )
@@ -92,7 +97,7 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
                     message = await inter.client.wait_for(
                         'message',
                         timeout=remaining_time,
-                        check=lambda m: m.author == player and m.channel == inter.channel
+                        check=lambda m: m.author == player and m.channel == channel
                     )
                     word = unidecode(message.content.lower().strip())
 
@@ -109,7 +114,7 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
                         )
                 
                         await message_player.delete()
-                        await inter.channel.send(embed=embed)
+                        await channel.send(embed=embed)
                         players.remove(player)
                         update_player_stats(players_stats, player.id, 'end')
                         break
@@ -138,7 +143,7 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
                         color=discord.Color.red()
                     )
                     await message_player.delete()
-                    await inter.channel.send(embed=embed_timeout)
+                    await channel.send(embed=embed_timeout)
                     players.remove(player)
                     update_player_stats(players_stats, player.id, 'end')
                     break
@@ -161,4 +166,5 @@ async def start_game_shiritori(view: 'MainView', inter: discord.Interaction[Nayu
     embed.add_field(name='⏱️ Duração da Partida:', value=f'```{str(end_time_game - start_time_game).split(".")[0]}```', inline=False)
 
     from .views import PlayerStatusSelectView # Evitar importação circular
-    await inter.channel.send(embed=embed, view=PlayerStatusSelectView(players_stats))
+    await channel.send(embed=embed, view=PlayerStatusSelectView(players_stats))
+    log.info('Shiritori finalizado channel_id=%s winner_id=%s', channel.id, player_winner.id)
