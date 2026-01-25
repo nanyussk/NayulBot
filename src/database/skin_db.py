@@ -10,6 +10,9 @@ class SkinsDB:
     def __init__(self, client: AsyncIOMotorClient):
         self.collection = client['nayul']['skins']
 
+    async def create_indexes(self) -> None:
+        await self.collection.create_index('_id')
+
     async def get_skins(self) -> list[ProfileSkin]:
         """
         Obtém as skins de perfil do banco de dados.
@@ -99,12 +102,12 @@ class SkinsDB:
 
         skin_dict = ProfileSkin(
             id=skin_data.id,
-            name=name or skin_data.name,
-            price=price or skin_data.price,
-            rarity=rarity or skin_data.rarity,
-            description=description or skin_data.description,
-            author=author or skin_data.author,
-            url=url or skin_data.url
+            name=name if name is not None else skin_data.name,
+            price=price if price is not None else skin_data.price,
+            rarity=rarity if rarity is not None else skin_data.rarity,
+            description=description if description is not None else skin_data.description,
+            author=author if author is not None else skin_data.author,
+            url=url if url is not None else skin_data.url
         ).to_dict()
 
         await self.collection.update_one({'_id': skin_id}, {'$set': skin_dict})
@@ -116,7 +119,5 @@ class SkinsDB:
             List[ProfileSkin]: Lista de todas as skins.
         """
 
-        skins = []
-        async for skin in self.collection.find().to_list(length=None):
-            skins.append(ProfileSkin(**skin))
-        return skins
+        data = await self.collection.find().to_list(length=None)
+        return [ProfileSkin(**skin) for skin in data]

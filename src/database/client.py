@@ -1,7 +1,7 @@
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from src.env import ENV
+from src.config import ENV
 from src.database.user_db import UsersDB
 from src.database.skin_db import SkinsDB
 from src.database.settings_db import SettingsDB
@@ -28,12 +28,21 @@ class DatabaseClient:
         """
         try:
             client = AsyncIOMotorClient(ENV.MONGO)
-            return cls(
+            log.debug('Conectado ao MongoDB com sucesso.')
+            db = cls(
                 users=UsersDB(client),
-                skins=SkinsDB(client),
+                skin=SkinsDB(client),
                 settings=SettingsDB(client)
             )
-            log.debug('Conectado ao MongoDB com sucesso.')
+            await db.create_indexes()
+            return db
         except Exception:
             log.critical('Não foi possível conectar ao MongoDB.', exc_info=True)
             raise ConnectionError('Não foi possível conectar ao MongoDB.')
+
+    async def create_indexes(self) -> None:
+        log.debug('Criando indices do banco.')
+        await self.users.create_indexes()
+        await self.skin.create_indexes()
+        await self.settings.create_indexes()
+        log.debug('Indices criados.')

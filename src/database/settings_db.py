@@ -10,6 +10,9 @@ class SettingsDB:
     def __init__(self, client: AsyncIOMotorClient):
         self.collection = client['nayul']['settings']
 
+    async def create_indexes(self) -> None:
+        await self.collection.create_index('_id')
+
     async def get_settings(self) -> Settings:
         """
         Obtém as configurações do bot do banco de dados.
@@ -21,7 +24,11 @@ class SettingsDB:
         if data is None:
             default_settings = Settings().to_dict()
             default_settings['_id'] = 0
-            await self.collection.insert_one(default_settings)
+            await self.collection.update_one(
+                {'_id': 0},
+                {'$setOnInsert': default_settings},
+                upsert=True,
+            )
             log.debug('Configurações padrão inseridas no banco de dados.')
             return Settings()
         
