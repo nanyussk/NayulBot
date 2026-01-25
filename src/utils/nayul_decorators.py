@@ -1,10 +1,13 @@
 import discord
+import logging
 from functools import wraps
 from discord.ext import commands
 from typing import Union
 
 from src import NayulCore
 from .others import format_timestamp, Colors
+
+log = logging.getLogger(__name__)
 
 def is_staff():
     """Verifica se o usuário é um staff do bot."""
@@ -14,6 +17,7 @@ def is_staff():
             settings = await ctx.bot.db.settings.get_settings()
             if ctx.author.id in settings.staffs or ctx.author.id in ctx.bot.owner_ids:
                 return await func(self, ctx, *args, **kwargs)
+            log.debug('Acesso staff negado user_id=%s', ctx.author.id)
         return wrapper
     return decorator
 
@@ -32,6 +36,7 @@ def check_user_banned():
             user_data = await nayul.db.users.get_user(user)
 
             if user_data.ban_status:
+                log.info('Usuario banido bloqueado user_id=%s', user.id)
                 if isinstance(inter, discord.Interaction):
                     banned_at = user_data.ban_status.banned_at
                     embed = discord.Embed(

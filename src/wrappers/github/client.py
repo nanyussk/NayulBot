@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import aiohttp
+import logging
 from typing import Union
 
 from .http import HTTPClient
@@ -12,6 +13,8 @@ from .data.branch import GitHubBranch
 from .data.entry import GitHubEntry
 
 __all__ = ("HTTPClient",)
+
+log = logging.getLogger(__name__)
 
 class Client:
     """
@@ -33,6 +36,7 @@ class Client:
             session (aiohttp.ClientSession, opcional): Sessão HTTP reutilizável.
         """
         self.http = HTTPClient(token, session=session)
+        log.debug('Cliente GitHub inicializado.')
 
     async def get_repo_info(self, owner: str, repo: str) -> GitHubRepo:
         """
@@ -45,6 +49,7 @@ class Client:
         Returns:
             GitHubRepo: Objeto com os dados do repositório.
         """
+        log.debug('Buscando repo info %s/%s', owner, repo)
         data = await self.http.get_repo_info(owner, repo)
         return GitHubRepo(**data)
     
@@ -61,6 +66,7 @@ class Client:
         Returns:
             list[GitHubCommit]: Lista de objetos representando os commits.
         """
+        log.debug('Buscando commits %s/%s branch=%s per_page=%s', owner, repo, branch, per_page)
         data = await self.http.get_commits(owner, repo, branch=branch, per_page=per_page)
         return [GitHubCommit(**commit) for commit in data]
 
@@ -77,6 +83,7 @@ class Client:
         Returns:
             GitHubFile: Model com dados do arquivo.
         """
+        log.debug('Buscando arquivo %s/%s path=%s branch=%s', owner, repo, path, branch)
         data = await self.http.get_file_content(owner, repo, path, branch=branch)
         if isinstance(data, list) or 'content' not in data:
             raise ValueError(f'O caminho "{path}" não é um arquivo válido ou está inacessível.')
@@ -107,6 +114,7 @@ class Client:
         Returns:
             GitHubFileUpdateResponse: Dados do conteúdo atualizado e commit.
         """
+        log.info('Atualizando arquivo GitHub %s/%s path=%s branch=%s', owner, repo, path, branch)
         data = await self.http.update_file(
             owner,
             repo,
@@ -129,6 +137,7 @@ class Client:
         Returns:
             list[GitHubBranch]: Lista de objetos representando as branches.
         """
+        log.debug('Listando branches %s/%s', owner, repo)
         data = await self.http.get_branches(owner, repo)
         return [GitHubBranch(**branch) for branch in data]
     
@@ -144,6 +153,7 @@ class Client:
         Returns:
             GitHubBranch: Objeto representando a branch.
         """
+        log.debug('Buscando branch %s/%s branch=%s', owner, repo, branch)
         data = await self.http.get_branch(owner, repo, branch=branch)
         return GitHubBranch(**data)
     
@@ -161,6 +171,7 @@ class Client:
             - Lista de GitHubEntry se for diretório
             - GitHubFile se for arquivo
         """
+        log.debug('Listando path %s/%s path=%s branch=%s', owner, repo, path, branch)
         data = await self.http.list_directory(owner, repo, path, branch)
     
         if isinstance(data, list):
@@ -195,4 +206,5 @@ class Client:
                     await walk(entry.path)
 
         await walk(path)
+        log.debug('Arquivos encontrados %s/%s count=%s', owner, repo, len(all_files))
         return all_files

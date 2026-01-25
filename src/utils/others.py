@@ -1,9 +1,11 @@
 import os
+import logging
 import yaml
 from datetime import datetime
 from typing import Union, Literal
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+log = logging.getLogger(__name__)
 
 
 class Colors:
@@ -60,9 +62,11 @@ def format_timestamp(date: Union[datetime, int, str], style: Literal['t','T','f'
 
 def Permissions() -> dict:
 	"""Carrega as permissões em Português do arquivo permissions.yml."""
+	log.debug('Carregando permissoes de %s', BASE_DIR + '/resources/permissions.yml')
 	with open(BASE_DIR + '/resources/permissions.yml', 'r', encoding='utf-8') as file:
 		return yaml.safe_load(file) or {}
 
 def read_txt_file(path: str) -> str | None:
-    with open(f'{BASE_DIR}/{path}', 'r', encoding='utf-8') as file:
-        return file.read() or None
+	log.debug('Lendo arquivo txt: %s', path)
+	with open(f'{BASE_DIR}/{path}', 'r', encoding='utf-8') as file:
+		return file.read() or None

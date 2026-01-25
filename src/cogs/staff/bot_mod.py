@@ -1,7 +1,7 @@
+import logging
+
 import discord
 from discord.ext import commands
-
-import logging
 
 from src import NayulCore
 from src.utils import nayul_decorators
@@ -55,6 +55,7 @@ class ModCommands(commands.Cog):
         await ctx.send(f'{ctx.author.mention} **|** Usuário desbanido com sucesso!')
         log.info(f'Usuário {user.id} desbanido por {ctx.author.id}')
 
+        # Tenta reutilizar um convite permanente para evitar criar varios.
         try:
             message = (
                 '✅ Você foi **desbanido pela equipe** e agora pode usar todas as minhas funcionalidades novamente.\n'
@@ -71,6 +72,7 @@ class ModCommands(commands.Cog):
         guild = self.nayul.get_guild(guild_id)
         if not guild:
             return await ctx.reply('Servidor não encontrado.', delete_after=30)
+        me = guild.me or guild.get_member(self.nayul.user.id)
         try:
             invites = await guild.invites()
             invite = next((invite for invite in invites if invite.max_age == 0 and invite.max_uses == 0), None)
@@ -79,7 +81,7 @@ class ModCommands(commands.Cog):
         
         if not invite:
             for channel in guild.text_channels:
-                if channel.permissions_for(guild.me).create_instant_invite:
+                if me and channel.permissions_for(me).create_instant_invite:
                     invite = await channel.create_invite(temporary=True)
                     break
         if not invite:
@@ -90,3 +92,4 @@ class ModCommands(commands.Cog):
         
 async def setup(nayul: NayulCore):
     await nayul.add_cog(ModCommands(nayul))
+    log.debug('Cog ModCommands carregado.')
