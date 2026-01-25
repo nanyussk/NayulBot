@@ -14,62 +14,126 @@
 
 ---
 
-## 📋 Sobre o Projeto
+## 📌 Visao Geral
 
-**Nayul** é um bot para Discord multifuncional, com comandos de economia, utilidades e automações, desenvolvido em Python com a biblioteca **discord.py**.
+**Nayul** e um bot para Discord com comandos de economia, utilidades e automacoes, construido em Python com **discord.py**.
 
-> ⚠️ O desenvolvimento está pausado temporariamente, mas o projeto permanece aberto para colaborações.
+> ⚠️ O desenvolvimento esta pausado temporariamente, mas o projeto permanece aberto para colaboracoes.
 
-## 🛠 Requisitos
+## ✨ Destaques
+
+- Cogs organizados por dominio
+- Integracoes externas via wrappers
+- Camada de dados dedicada
+- Estrutura modular para evolucao
+
+## ✅ Requisitos
 
 - Python 3.11+
 - Git
 
 ---
 
-## ⚙️ Instalação e Configuração
+## 🚀 Inicio Rapido
 
-1. **Clone o repositório:**
+1. **Clone o repositorio:**
    ```bash
    git clone https://github.com/nanyuss/NayulBot.git
    cd NayulBot
    ```
-2. **Crie e ative o ambiente virtual (Opcional, mas recomendado):**
+2. **Configure o ambiente:**
+   - Renomeie `example.env` para `.env`
+   - Preencha as variaveis obrigatorias
+3. **Escolha um metodo e siga o tutorial:**
 
-```bash
-python -m venv venv
-source venv/bin/activate  # No Windows: venv\Scripts\activate
-```
+<details>
+  <summary><strong>Usando uv (recomendado)</strong></summary>
 
-3. **Instale as dependências:**
+1. **Crie o ambiente virtual:**
+   ```bash
+   uv venv .venv
+   ```
+2. **Ative o ambiente:**
+   ```bash
+   source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+   ```
+3. **Sincronize as dependencias:**
+   ```bash
+   uv sync
+   ```
+   > O `uv sync` usa as dependencias do `pyproject.toml`/`uv.lock`.
+4. **Execute o bot:**
+   ```bash
+   uv run python main.py
+   ```
+</details>
+
+<details>
+  <summary><strong>Usando Python/pip</strong></summary>
+
+1. **Crie e ative o ambiente virtual (opcional, mas recomendado):**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+   ```
+2. **Instale as dependencias:**
    ```bash
    pip install -r requirements.txt
    ```
-
-4. **Configure as variáveis de ambiente:**
-   - Renomeie `example.env` para `.env`.
-   - Edite o `.env` com as informações necessárias.
-
-5. **Execute o bot:**
+   > Este metodo usa o `requirements.txt` diretamente.
+3. **Execute o bot:**
    ```bash
    python main.py
    ```
+</details>
 
 ---
 
-## 🤝 Como Contribuir
+## 🔐 Variaveis de Ambiente
 
-Contribuições são bem-vindas! Você pode:
+Configure no arquivo `.env`:
+
+- `TOKEN`: token do bot no Discord
+- `OWNER_IDS`: IDs dos proprietarios separados por virgula
+- `MONGO`: string de conexao do MongoDB
+- `FILES_API`: URL base da API de arquivos
+- `PREFIX` (opcional): prefixo de comandos, padrao `,,`
+
+---
+
+## 🗂 Estrutura do Projeto
+
+- `main.py`: ponto de entrada
+- `src/cogs`: comandos e eventos
+- `src/core`: nucleo do bot (setup, help, manager de cogs)
+- `src/database`: modelos e cliente do banco
+- `src/features`: fluxos e UIs internas (ex.: embeds, jogos)
+- `src/utils`: helpers e utilitarios
+- `src/wrappers`: integracoes externas
+
+---
+
+## 🧪 Testes
+
+```bash
+uv run python -m unittest discover -s tests -p "test_*.py"
+```
+
+---
+
+## 🤝 Contribuicao
+
+Contribuicoes sao bem-vindas. Sugestoes:
 
 - Corrigir bugs
 - Criar novos comandos e cogs
-- Melhorar a documentação
-- Otimizar o código
+- Melhorar a documentacao
+- Otimizar o codigo
 
 ---
 
-## 🔗 Links Úteis
+## 🔗 Links Uteis
 
-- [discord.py (Documentação)](https://discordpy.readthedocs.io/en/stable/)
-- [Python 3.11 (Documentação)](https://docs.python.org/3.11/)
+- [discord.py (Documentacao)](https://discordpy.readthedocs.io/en/stable/)
+- [Python 3.11 (Documentacao)](https://docs.python.org/3.11/)
 - [Discord Developer Portal](https://discord.com/developers/)
